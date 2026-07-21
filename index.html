@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principios de Ethernet (802.3) y Conmutación en Redes Cisco</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="web-publication">
+    <header>
+        <span class="badge">
+            <span class="live-dot"></span> CCNA 1 & 2 — Módulos 6 y 8
+        </span>
+        <h1>Principios de Ethernet IEEE 802.3 y Conmutación en Redes Cisco</h1>
+        <div class="meta-info">Por: <strong>Juan Emiliano Corona Peña</strong> | Publicación Web Académica</div>
+    </header>
+
+    <main>
+        <p>Cuando hablamos de redes locales (LAN), prácticamente todo el mundo utiliza Ethernet. Pero, ¿realmente sabemos qué pasa por el cable cuando enviamos un mensaje? Para entender las redes Cisco desde la base, primero tenemos que ver cómo se empaqueta la información en tramas y cómo los switches hacen su magia para mover los datos sin que la red se vuelva un caos.</p>
+        <p>En este artículo voy a explicar de forma sencilla la estructura de la trama Ethernet IEEE 802.3, los campos que la componen y cómo la conmutación vino a salvar el rendimiento de las redes eliminando las molestas colisiones.</p>
+
+        <h2>1. El Entramado: ¿Cómo se prepara la información?</h2>
+        <p>En la Capa 2 (Enlace de Datos) del modelo OSI, la información no se envía como un chorro continuo de datos sin control. En lugar de eso, se empaqueta en unidades conocidas como <strong>tramas (frames)</strong>. El entramado es básicamente ponerle un "sobre" a los datos para indicar claramente dónde empieza y dónde termina un mensaje.</p>
+        <p>El estándar <strong>IEEE 802.3</strong> define las reglas del juego para que cualquier tarjeta de red (NIC) entienda el formato de la trama y sepa cómo interpretarla correctamente.</p>
+
+        <!-- ANIMACIÓN VISUAL DE TRÁFICO EN CABLE -->
+        <div class="network-animation-card">
+            <h4>Simulación de Tráfico de Tramas en Medio Físico</h4>
+            <div class="cable-container">
+                <div class="cable-line"></div>
+                <div class="data-packet"></div>
+            </div>
+            <div class="nodes-container">
+                <div class="node-box">Host Emisor (TX)</div>
+                <div class="node-box">Switch / Receptor (RX)</div>
+            </div>
+        </div>
+
+        <h2>2. Campos de la Trama Ethernet (802.3)</h2>
+        <p>Si abrimos una trama Ethernet, nos encontramos con varios campos organizados en un orden muy específico:</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>A. Preámbulo y Delimitador de Inicio (SFD)</h3>
+                <p>Consiste en 7 bytes de unos y ceros alternados (<code>10101010</code>) que sirven para "sincronizar los relojes" de las tarjetas de red emisora y receptora. Inmediatamente después viene el <strong>SFD (Start Frame Delimiter)</strong> de 1 byte, que le avisa al receptor: <em>"Atento, aquí empieza la trama real"</em>.</p>
+            </div>
+            <div class="card">
+                <h3>B. Direcciones MAC (Destino y Origen)</h3>
+                <p>Son las direcciones físicas de 48 bits (6 bytes) grabadas de fábrica en las tarjetas de red. La <strong>MAC de destino</strong> sirve para que los switches sepan a quién entregar la trama, y la <strong>MAC de origen</strong> le dice al receptor quién mandó el mensaje.</p>
+            </div>
+            <div class="card">
+                <h3>C. Longitud / Tipo (Length / Type)</h3>
+                <p>En el estándar 802.3 este campo indica el tamaño exacto del campo de datos. En el formato Ethernet II se usa principalmente como <em>Type</em> para indicar qué protocolo de capa superior viene guardado adentro (como IPv4 o IPv6).</p>
+            </div>
+            <div class="card">
+                <h3>D. Datos y Relleno (Data & Padding)</h3>
+                <p>Es la información real que queremos enviar. Una regla importante de Ethernet es que la trama completa debe medir <strong>mínimo 64 bytes</strong> y <strong>máximo 1518 bytes</strong>. Si los datos son muy pequeños (menos de 46 bytes), la trama agrega un "relleno" automático para llegar al mínimo exigido de 64 bytes.</p>
+            </div>
+            <div class="card">
+                <h3>E. Secuencia de Verificación de Trama (FCS)</h3>
+                <p>Son 4 bytes al final de la trama que se usan para control de errores mediante un cálculo matemático llamado CRC. Si la tarjeta receptora calcula este número y no coincide con el que viene en la trama, sabe que el mensaje se corrompió en el camino y lo descarta de inmediato.</p>
+            </div>
+        </div>
+
+        <h2>3. Conmutación Ethernet: De la velocidad compartida a la dedicada</h2>
+        <p>En las redes antiguas con <em>hubs</em> (concentradores de Capa 1), todos los dispositivos compartían el mismo medio físico. Esto significaba que solo una computadora podía hablar a la vez en modo <strong>Half-Duplex</strong>. Si dos intentaban hablar al mismo tiempo, ocurría una <strong>colisión</strong> y el tráfico se detenía.</p>
+        <p>Los <strong>switches</strong> cambiaron todo esto trabajando en la Capa 2. En lugar de repetir los datos por todos lados a ciegas, el switch lee las direcciones MAC, aprende en qué puerto está cada equipo (guardándolo en su tabla CAM) y crea un <strong>circuito virtual dedicado</strong> entre la fuente y el destino.</p>
+
+        <h2>4. Dominios de Colisión y Dominios de Difusión</h2>
+        <p>Para entender por qué un switch hace que la red vaya mucho más rápida, hay que distinguir entre estos dos conceptos:</p>
+
+        <ul>
+            <li><strong>Dominio de Colisión:</strong> Es el área de la red donde dos mensajes pueden chocar si se envían al mismo tiempo.
+                <br><em>¿Qué hace el switch?</em> Aplica <strong>microsegmentación</strong>. Cada puerto del switch es su propio dominio de colisión independiente, lo que permite trabajar en modo <strong>Full-Duplex</strong> (transmitir y recibir al mismo tiempo sin colisiones).</li>
+            <li><strong>Dominio de Difusión (Broadcast):</strong> Es el área hasta donde llega una trama de difusión (dirección MAC <code>FF:FF:FF:FF:FF:FF</code>) que busca a todos los equipos.
+                <br><em>¿Qué hace el switch?</em> Por defecto, todos los puertos del switch comparten el mismo dominio de difusión. Si alguien envía un broadcast, el switch lo replica por todos sus puertos activos. Para separar los broadcasts necesitamos un router (Capa 3) o configurar VLANs.</li>
+        </ul>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dispositivo</th>
+                        <th>Capa OSI</th>
+                        <th>Dominios de Colisión</th>
+                        <th>Dominios de Difusión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Hub (Concentrador)</strong></td>
+                        <td>Capa 1 (Física)</td>
+                        <td>1 para todo el equipo</td>
+                        <td>1 para todo el equipo</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Switch (Conmutador)</strong></td>
+                        <td>Capa 2 (Enlace de Datos)</td>
+                        <td>1 por cada puerto activo</td>
+                        <td>1 para todo el equipo (por defecto)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Router (Enrutador)</strong></td>
+                        <td>Capa 3 (Red)</td>
+                        <td>1 por cada interfaz</td>
+                        <td>1 por cada interfaz</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert-box">
+            <h4> Conclusión personal</h4>
+            <p>La combinación de un entramado bien estructurado con la microsegmentación de los switches modernos es la razón por la cual Ethernet sigue siendo el rey de las redes. Pasamos de redes lentas llenas de colisiones a conexiones dedicadas capaces de aprovechar el 100% del ancho de banda.</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 Juan Emiliano Corona Peña | Universidad Simón Bolívar</p>
+        <p>Publicación elaborada con base en los Módulos 6 y 8 del libro CCNA 1 y 2 de Cisco.</p>
+    </footer>
+</div>
+
+</body>
+</html>
